@@ -1,0 +1,48 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+%}
+
+DIGIT   [0-9]+
+
+%%
+{DIGIT}"+"{DIGIT}   {
+                        char *s = strdup(yytext);
+                        int a, b;
+                        sscanf(s, "%d+%d", &a, &b);
+                        printf("%d", a+b);
+                    }
+{DIGIT}"-"{DIGIT}   {
+                        char *s = strdup(yytext);
+                        int a, b;
+                        sscanf(s, "%d-%d", &a, &b);
+                        printf("%d", a-b);
+                    }
+{DIGIT}"*"{DIGIT}   {
+                        char *s = strdup(yytext);
+                        int a, b;
+                        sscanf(s, "%d*%d", &a, &b);
+                        printf("%d", a*b);
+                    }
+{DIGIT}"/"{DIGIT}   {
+                        char *s = strdup(yytext);
+                        int a, b;
+                        sscanf(s, "%d/%d", &a, &b);
+                        if(b!=0) printf("%d", a/b);
+                        else printf("DivByZero");
+                    }
+.|\n    { ECHO; }
+%%
+
+int main() {
+    printf("Enter expression with constants: ");
+    yylex();
+    return 0;
+}
+int yywrap() { return 1; }
+
+
+
+//Enter expression with constants: 8*3
+Output: 24
+//
