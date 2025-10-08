@@ -28,10 +28,11 @@ void insert_symbol(char *name, char *type, char *kind, char *scope, char *memloc
 }
 
 void display_symtab() {
+    int i;
     printf("\n%-15s %-12s %-12s %-10s %-15s %-20s\n",
            "Name", "Type", "Kind", "Scope", "Mem_Loc", "Extra_Info");
     printf("---------------------------------------------------------------------------------------\n");
-    for (int i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         printf("%-15s %-12s %-12s %-10s %-15s %-20s\n",
                symtab[i].name, symtab[i].type, symtab[i].kind,
                symtab[i].scope, symtab[i].memloc, symtab[i].extra);
@@ -39,20 +40,43 @@ void display_symtab() {
 }
 %}
 
+ID      [a-zA-Z_][a-zA-Z0-9_]*
+NUM     [0-9]+
+FLOAT   [0-9]+\.[0-9]+
+STR     \"([^\"\n]|\\.)*\"
+CHAR    \'([^'\n]|\\.)\'
+
+OP      [+\-*/%=&|!<>]+
+PUNC    [;,\[\]\(\)\{\}]
+COMMENT1 "//".*
+COMMENT2 "/\\*([^*]|\\*+[^*/])*\\*/"
+WS      [\t\n\r]+
 %%
-int|float              { insert_symbol(yytext, "Keyword", "datatype", "global", "-", "reserved word"); }
-[a-zA-Z_][a-zA-Z0-9_]* {
-                          if (!is_keyword(yytext)) {
-                              insert_symbol(yytext, "Identifier", "variable", "local", "0x100", "size=4 bytes");
-                          }
-                       }
-[0-9]+                 { insert_symbol(yytext, "Constant", "literal", "local", "-", "integer constant"); }
-[ \t\n]+               ;  /* Ignore spaces and newlines */
-.                      ;
+
+{ID} {
+    if(is_keyword(yytext)) {
+        insert_symbol(yytext, "Keyword", "datatype", "global", "-", "reserved word");
+    } else {
+        insert_symbol(yytext, "Identifier", "variable", "local", "0x100", "size=4 bytes");
+    }
+}
+
+{NUM}    { insert_symbol(yytext, "Constant", "literal", "local", "-", "integer constant");}
+
+{FLOAT}  { insert_symbol(yytext, "Constant", "literal", "local", "-", "float constant");}
+
+{STR}    { insert_symbol(yytext, "Constant", "literal", "local", "-", "string literal");}
+
+{CHAR}   {  insert_symbol(yytext, "Constant", "literal", "local", "-", "char literal");}
+
+{OP}     {  }
+{PUNC}   {  }
+.        {  }
+
 %%
 
 int main() {
-    printf("Enter the code press Ctrl+Z then Enter to end:\n");
+    printf("Enter code (press Ctrl+Z then Enter to end):\n");
     yylex();
     display_symtab();
     return 0;
